@@ -247,13 +247,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 : _isGridMode
                     // Coursework Concept: GridView
                     ? GridView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 0.68,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.74,
                         ),
                         itemCount: _productsForCategory.length,
                         itemBuilder: (context, index) {
