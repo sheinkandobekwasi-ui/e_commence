@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hettys_shop/data/mock_data.dart';
+import 'package:hettys_shop/data/product_service.dart';
 import 'package:hettys_shop/models/product.dart';
+import 'package:hettys_shop/widgets/app_image.dart';
 import 'package:hettys_shop/widgets/product_card.dart';
 
 /// ============================================================================
@@ -72,7 +73,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   ];
 
   List<Product> get _productsForCategory {
-    return MockData.sampleProducts
+    return ProductService().products
         .where((p) => p.category.toLowerCase() == _activeCategory.toLowerCase())
         .toList();
   }
@@ -99,7 +100,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               _isGridMode ? Icons.view_list_rounded : Icons.grid_view_rounded,
               color: theme.primaryColor,
             ),
-            tooltip: _isGridMode ? 'Switch to List View' : 'Switch to Grid View',
+            tooltip: _isGridMode
+                ? 'Switch to List View'
+                : 'Switch to Grid View',
             onPressed: () {
               setState(() {
                 _isGridMode = !_isGridMode;
@@ -109,182 +112,189 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
-          // ---------------- HORIZONTAL CATEGORY SELECTOR ----------------
-          // Coursework Concept: Container with child and ListView
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: SizedBox(
-              height: 90,
-              // Coursework Concept: ListView.builder
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categoryData.length,
-                itemBuilder: (context, index) {
-                  final cat = _categoryData[index];
-                  final isSelected = _activeCategory == cat['name'];
-                  final Color catColor = cat['color'] as Color;
+      body: ListenableBuilder(
+        listenable: ProductService(),
+        builder: (context, _) => Column(
+          children: [
+            // ---------------- HORIZONTAL CATEGORY SELECTOR ----------------
+            // Coursework Concept: Container with child and ListView
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                height: 90,
+                // Coursework Concept: ListView.builder
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _categoryData.length,
+                  itemBuilder: (context, index) {
+                    final cat = _categoryData[index];
+                    final isSelected = _activeCategory == cat['name'];
+                    final Color catColor = cat['color'] as Color;
 
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _activeCategory = cat['name'] as String;
-                      });
-                    },
-                    child: Container(
-                      width: 80,
-                      margin: const EdgeInsets.only(right: 12),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? catColor
-                                  : catColor.withOpacity(0.12),
-                              shape: BoxShape.circle,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: catColor.withOpacity(0.4),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ]
-                                  : [],
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _activeCategory = cat['name'] as String;
+                        });
+                      },
+                      child: Container(
+                        width: 80,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? catColor
+                                    : catColor.withOpacity(0.12),
+                                shape: BoxShape.circle,
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: catColor.withOpacity(0.4),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : [],
+                              ),
+                              child: Icon(
+                                cat['icon'] as IconData,
+                                color: isSelected ? Colors.white : catColor,
+                                size: 26,
+                              ),
                             ),
-                            child: Icon(
-                              cat['icon'] as IconData,
-                              color: isSelected ? Colors.white : catColor,
-                              size: 26,
+                            const SizedBox(height: 6),
+                            Text(
+                              cat['name'] as String,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? Colors.black87
+                                    : Colors.grey.shade600,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            cat['name'] as String,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isSelected
-                                  ? Colors.black87
-                                  : Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
 
-          // ---------------- CATEGORY INFO BAR ----------------
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      _activeCategory,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${_productsForCategory.length} items',
-                        style: TextStyle(
-                          fontSize: 11,
+            // ---------------- CATEGORY INFO BAR ----------------
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        _activeCategory,
+                        style: const TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: theme.primaryColor,
+                          color: Color(0xFF1E293B),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Text(
-                  _isGridMode ? 'Grid Layout' : 'List Layout',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ---------------- PRODUCT PRESENTATION (GRIDVIEW OR LISTVIEW) ----------------
-          Expanded(
-            child: _productsForCategory.isEmpty
-                ? Center(
-                    child: Text(
-                      'No products found in $_activeCategory',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  )
-                : _isGridMode
-                    // Coursework Concept: GridView
-                    ? GridView.builder(
+                      const SizedBox(width: 8),
+                      Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.94,
+                          horizontal: 8,
+                          vertical: 2,
                         ),
-                        itemCount: _productsForCategory.length,
-                        itemBuilder: (context, index) {
-                          final product = _productsForCategory[index];
-                          return ProductCard(
-                            product: product,
-                            onTap: () {
-                              // Coursework Concept: Page Navigation with Arguments
-                              Navigator.pushNamed(
-                                context,
-                                '/product-details',
-                                arguments: product,
-                              );
-                            },
-                          );
-                        },
-                      )
-                    // Coursework Concept: ListView
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _productsForCategory.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final product = _productsForCategory[index];
-                          return _buildProductListTile(context, product);
-                        },
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_productsForCategory.length} items',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: theme.primaryColor,
+                          ),
+                        ),
                       ),
-          ),
-        ],
+                    ],
+                  ),
+                  Text(
+                    _isGridMode ? 'Grid Layout' : 'List Layout',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ---------------- PRODUCT PRESENTATION (GRIDVIEW OR LISTVIEW) ----------------
+            Expanded(
+              child: _productsForCategory.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No products found in $_activeCategory',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    )
+                  : _isGridMode
+                  // Coursework Concept: GridView
+                  ? GridView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.68,
+                          ),
+                      itemCount: _productsForCategory.length,
+                      itemBuilder: (context, index) {
+                        final product = _productsForCategory[index];
+                        return ProductCard(
+                          product: product,
+                          onTap: () {
+                            // Coursework Concept: Page Navigation with Arguments
+                            Navigator.pushNamed(
+                              context,
+                              '/product-details',
+                              arguments: product,
+                            );
+                          },
+                        );
+                      },
+                    )
+                  // Coursework Concept: ListView
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _productsForCategory.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final product = _productsForCategory[index];
+                        return _buildProductListTile(context, product);
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -296,11 +306,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return InkWell(
       onTap: () {
         // Coursework Concept: Page Navigation with Arguments
-        Navigator.pushNamed(
-          context,
-          '/product-details',
-          arguments: product,
-        );
+        Navigator.pushNamed(context, '/product-details', arguments: product);
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -324,12 +330,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Container(
                 width: 90,
                 height: 90,
-                color: Colors.grey.shade100,
-                child: Image.network(
-                  product.image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.shopping_bag_outlined, size: 36),
+                color: const Color(0xFFF8FAFC),
+                padding: const EdgeInsets.all(4),
+                child: AppImage(
+                  imagePath: product.image,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
                 ),
               ),
             ),
@@ -354,10 +360,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     product.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -373,7 +376,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: product.inStock
                               ? Colors.green.shade50

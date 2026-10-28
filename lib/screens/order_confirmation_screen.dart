@@ -17,14 +17,15 @@ class OrderConfirmationScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Retrieve order summary details passed as navigation arguments
-    final Map<String, dynamic> data = orderData ??
+    final Map<String, dynamic> data =
+        orderData ??
         (ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?) ??
         {
-          'orderId': 'HS-849201',
-          'customerName': 'Henrietta Mensah',
-          'customerEmail': 'hetty@university.edu',
+          'orderId': 'SHEI-849201',
+          'customerName': 'Shei Customer',
+          'customerEmail': 'customer@sheistore.com',
           'customerPhone': '+233 24 555 0192',
-          'deliveryAddress': 'Block B, University Campus, Accra',
+          'deliveryAddress': 'Apartment B4, Residential Area, Accra, Ghana',
           'paymentMethod': 'Cash on Delivery',
           'itemCount': 3,
           'totalAmount': 245.50,
@@ -82,7 +83,7 @@ class OrderConfirmationScreen extends StatelessWidget {
               const SizedBox(height: 8),
 
               Text(
-                'Thank you for shopping with Hetty’s Shop. Your package is being prepared for dispatch.',
+                'Thank you for shopping with Shei Store. Your package is being prepared for dispatch.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -91,7 +92,83 @@ class OrderConfirmationScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              // ===============================================================
+              // ORDER NOTIFICATION BANNER
+              // Mandatory requirement: Displays instant confirmation message:
+              // "Order #HS-XXXX successfully placed! Delivery to [Region/City] is being processed."
+              // ===============================================================
+              Builder(
+                builder: (context) {
+                  final destination =
+                      (data['city'] != null &&
+                              data['city'].toString().trim().isNotEmpty)
+                          ? '${data['city']}, ${data['deliveryRegion'] ?? 'Ghana'}'
+                          : (data['deliveryRegion']?.toString() ??
+                              data['deliveryAddress']?.toString() ??
+                              'Ghana');
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF10B981).withOpacity(0.35),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'ORDER NOTIFICATION CONFIRMATION',
+                                style: TextStyle(
+                                  color: Color(0xFF047857),
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Order #${data['orderId']} successfully placed! Delivery to $destination is being processed.',
+                                style: const TextStyle(
+                                  color: Color(0xFF065F46),
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
               // Receipt / Invoice Container Card
               Container(
@@ -123,7 +200,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
@@ -141,19 +220,47 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                     const Divider(height: 24),
 
-                    _buildReceiptRow('Customer Name', data['customerName'].toString()),
+                    _buildReceiptRow(
+                      'Customer Name',
+                      data['customerName'].toString(),
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Email Address', data['customerEmail'].toString()),
+                    _buildReceiptRow(
+                      'Email Address',
+                      data['customerEmail'].toString(),
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Contact Phone', data['customerPhone'].toString()),
+                    _buildReceiptRow(
+                      'Contact Phone',
+                      data['customerPhone'].toString(),
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Delivery Address', data['deliveryAddress'].toString()),
+                    if (data['deliveryRegion'] != null) ...[
+                      _buildReceiptRow(
+                        'Delivery Region',
+                        data['deliveryRegion'].toString(),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    _buildReceiptRow(
+                      'Delivery Address',
+                      data['deliveryAddress'].toString(),
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Payment Method', data['paymentMethod'].toString()),
+                    _buildReceiptRow(
+                      'Payment Method',
+                      data['paymentMethod'].toString(),
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Total Items', '${data['itemCount']} items'),
+                    _buildReceiptRow(
+                      'Total Items',
+                      '${data['itemCount']} items',
+                    ),
                     const SizedBox(height: 10),
-                    _buildReceiptRow('Date & Time', data['orderDate'].toString()),
+                    _buildReceiptRow(
+                      'Date & Time',
+                      data['orderDate'].toString(),
+                    ),
 
                     const Divider(height: 24),
 
@@ -168,7 +275,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '\$${(data['totalAmount'] as num).toStringAsFixed(2)}',
+                          'GH₵ ${(data['totalAmount'] as num).toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
@@ -203,7 +310,9 @@ class OrderConfirmationScreen extends StatelessWidget {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('A copy of this receipt has been emailed to your address.'),
+                      content: Text(
+                        'A copy of this receipt has been emailed to your address.',
+                      ),
                       backgroundColor: Colors.blueAccent,
                     ),
                   );

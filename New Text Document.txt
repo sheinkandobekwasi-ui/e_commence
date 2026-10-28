@@ -1,0 +1,33 @@
+Please refactor, update, and finalize the Flutter mobile and web application with the following admin editing capabilities, branding, and feature configurations:
+
+1. Admin Product Management: Edit & Update Products:
+   - In the Admin Portal, provide an "Edit" button or action option for each product listed in the inventory.
+   - When clicked, it should take the admin back to the product upload/form page, pre-populated with that product's existing data (title, description, price in GH₵, and local image).
+   - Allow the admin to modify any field (including replacing the desktop-uploaded image, updating the description for functionality/quality/durability, title, or price) and save the changes back to the local product inventory state.
+
+2. Admin Portal & Real-Time Order Notifications:
+   - Restrict management strictly to the "Admin Portal" (no mixed staff/student access terms). 
+   - Implement real-time order notifications in the Admin Portal so the admin is instantly alerted whenever a customer submits an order.
+
+3. Shop Branding & Navigation:
+   - Ensure the shop name and headers across the entire app are branded as **Shei** (e.g., "Shei Store").
+   - Match the interactive Jumia-style dashboard layout with a 5-tab bottom navigation bar: [Home, Categories, Cart, Wishlist, Account].
+   - Wishlist Feature: Allow users to like items and save them to a local wishlist view for later checkout.
+
+4. Checkout Address Hierarchy & Compact Dropdown:
+   - Maintain the exact top-down checkout address sequence:
+     1. Delivery Region (Ghana) [Compact, scrollable dropdown with all 16 regions]
+     2. City / Town [Smart auto-fill & GPS location mapping for Sunyani and other cities]
+     3. Street / Campus Address
+   - Ensure all prices and subtotals are strictly formatted in Ghana Cedis (GH₵).
+
+5. Hybrid Storage (Local Inventory & Images, Firestore Orders):
+   - Keep product inventory and desktop-uploaded images stored locally on the PC/app directory to bypass cloud storage billing.
+   - Use Firebase Firestore strictly for saving customer text checkout orders.
+
+6. Interactive Helpdesk Card:
+   - Retain the 24/7 LIVE Account Helpdesk Card with active `url_launcher` links:
+     - Ask Query
+     - WhatsApp: `https://wa.me/233599876242`
+     - Hotline: `tel:+233599876242`
+   - Fix all bottom screen overflow warnings (yellow-and-black stripes) across device previews.

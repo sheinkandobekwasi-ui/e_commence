@@ -26,7 +26,7 @@ class PromoBanner extends StatelessWidget {
     return Container(
       width: 320,
       margin: const EdgeInsets.only(right: 14),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
@@ -51,8 +51,10 @@ class PromoBanner extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3.5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -68,8 +70,10 @@ class PromoBanner extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3.5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.amber,
                   borderRadius: BorderRadius.circular(12),
@@ -86,34 +90,38 @@ class PromoBanner extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Titles
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 16.5,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 subtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
-                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.88),
+                  fontSize: 11.5,
+                  height: 1.25,
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Action button
           Align(
@@ -126,8 +134,10 @@ class PromoBanner extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 elevation: 0,
               ),
               child: const Row(

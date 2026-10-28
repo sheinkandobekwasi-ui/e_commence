@@ -39,10 +39,9 @@ class CartService extends ChangeNotifier {
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
 
   /// Returns subtotal of all items
-  double get subtotal =>
-      _items.fold(0.0, (sum, item) => sum + item.totalPrice);
+  double get subtotal => _items.fold(0.0, (sum, item) => sum + item.totalPrice);
 
-  /// Standard flat delivery charge; $0 if cart is empty
+  /// Standard flat delivery charge in Ghana Cedis (GH₵); GH₵ 0 if cart is empty
   double get deliveryFee => _items.isEmpty ? 0.0 : 10.0;
 
   /// Estimated tax (5%)
@@ -68,14 +67,16 @@ class CartService extends ChangeNotifier {
 
   /// Adds a product to the cart or increments its count if already present
   void addItem(Product product, {int quantity = 1}) {
-    final existingIndex =
-        _items.indexWhere((item) => item.product.id == product.id);
+    final existingIndex = _items.indexWhere(
+      (item) => item.product.id == product.id,
+    );
 
     if (existingIndex >= 0) {
       final newQuantity = _items[existingIndex].quantity + quantity;
       // Cap at available stock
-      _items[existingIndex].quantity =
-          newQuantity <= product.stock ? newQuantity : product.stock;
+      _items[existingIndex].quantity = newQuantity <= product.stock
+          ? newQuantity
+          : product.stock;
     } else {
       final safeQty = quantity <= product.stock ? quantity : product.stock;
       _items.add(CartItem(product: product, quantity: safeQty));

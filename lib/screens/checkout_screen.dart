@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hettys_shop/data/cart_service.dart';
+import 'package:hettys_shop/services/firebase_service.dart';
+import 'package:hettys_shop/services/order_notification_service.dart';
 import 'package:hettys_shop/widgets/custom_button.dart';
 import 'package:hettys_shop/widgets/custom_text_field.dart';
 
@@ -9,8 +11,88 @@ import 'package:hettys_shop/widgets/custom_text_field.dart';
 /// TextFormField, Validators, Container, SizedBox, child & children, Page Navigation
 /// ============================================================================
 /// Collects shipping information and payment choice before finalizing order.
-/// Strictly enforces form validation rules required by the coursework.
+/// Strictly enforces:
+/// 1. Delivery Address Hierarchy & Sequence:
+///    - 1. Delivery Region (Ghana)
+///    - 2. City / Town (with smart-fill / GPS location mapping for cities like Sunyani)
+///    - 3. Street / Campus Address
+/// 2. Compact, inline dropdown popup style for Ghana's 16 regions
+/// 3. Connecting checkout text data to Firebase Firestore
 class CheckoutScreen extends StatefulWidget {
+  /// 16 Official Regions of Ghana (Mandatory coursework requirement)
+  static const List<String> ghanaRegions = [
+    'Ahafo',
+    'Ashanti',
+    'Bono',
+    'Bono East',
+    'Central',
+    'Eastern',
+    'Greater Accra',
+    'North East',
+    'Northern',
+    'Oti',
+    'Savannah',
+    'Upper East',
+    'Upper West',
+    'Volta',
+    'Western',
+    'Western North',
+  ];
+
+  /// Mapping of Ghanaian major cities / towns to their official Region
+  static const Map<String, String> cityToRegionMap = {
+    'Sunyani': 'Bono',
+    'Berekum': 'Bono',
+    'Dormaa Ahenkro': 'Bono',
+    'Techiman': 'Bono East',
+    'Kintampo': 'Bono East',
+    'Kumasi': 'Ashanti',
+    'Obuasi': 'Ashanti',
+    'Accra': 'Greater Accra',
+    'Tema': 'Greater Accra',
+    'Madina': 'Greater Accra',
+    'Cape Coast': 'Central',
+    'Elmina': 'Central',
+    'Winneba': 'Central',
+    'Koforidua': 'Eastern',
+    'Nkawkaw': 'Eastern',
+    'Tamale': 'Northern',
+    'Yendi': 'Northern',
+    'Takoradi': 'Western',
+    'Sekondi': 'Western',
+    'Tarkwa': 'Western',
+    'Ho': 'Volta',
+    'Hohoe': 'Volta',
+    'Bolgatanga': 'Upper East',
+    'Navrongo': 'Upper East',
+    'Wa': 'Upper West',
+    'Goaso': 'Ahafo',
+    'Dambai': 'Oti',
+    'Nalerigu': 'North East',
+    'Damongo': 'Savannah',
+    'Sefwi Wiawso': 'Western North',
+  };
+
+  /// Default regional hub cities for smart-filling
+  static const Map<String, String> regionDefaultCityMap = {
+    'Bono': 'Sunyani',
+    'Bono East': 'Techiman',
+    'Ashanti': 'Kumasi',
+    'Greater Accra': 'Accra',
+    'Central': 'Cape Coast',
+    'Eastern': 'Koforidua',
+    'Northern': 'Tamale',
+    'Western': 'Takoradi',
+    'Volta': 'Ho',
+    'Upper East': 'Bolgatanga',
+    'Upper West': 'Wa',
+    'Ahafo': 'Goaso',
+    'Oti': 'Dambai',
+    'North East': 'Nalerigu',
+    'Savannah': 'Damongo',
+    'Western North': 'Sefwi Wiawso',
+  };
+
   const CheckoutScreen({super.key});
 
   @override
@@ -22,6 +104,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final CartService _cartService = CartService();
+  final FirebaseService _firebaseService = FirebaseService();
 
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
@@ -29,6 +112,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late final TextEditingController _addressController;
   late final TextEditingController _cityController;
 
+  String? _selectedRegion = 'Greater Accra';
   String _selectedPaymentMethod = 'Cash on Delivery';
   bool _isProcessing = false;
 
@@ -59,16 +143,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _emailController = TextEditingController(text: user.email);
     _addressController = TextEditingController(text: user.address);
     _cityController = TextEditingController(text: user.city);
+
+    // Smart-fill listener: when user types known city, auto-map region
+    _cityController.addListener(_onCityChanged);
+  }
+
+  void _onCityChanged() {
+    final text = _cityController.text.trim();
+    for (final entry in CheckoutScreen.cityToRegionMap.entries) {
+      if (text.toLowerCase() == entry.key.toLowerCase() &&
+          _selectedRegion != entry.value) {
+        setState(() {
+          _selectedRegion = entry.value;
+        });
+        break;
+      }
+    }
   }
 
   @override
   void dispose() {
+    _cityController.removeListener(_onCityChanged);
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
     _cityController.dispose();
     super.dispose();
+  }
+
+  /// Smart-Fill / GPS Location Mapping for cities like Sunyani
+  void _smartFillGPSLocation({
+    String city = 'Sunyani',
+    String region = 'Bono',
+  }) {
+    setState(() {
+      _selectedRegion = region;
+      _cityController.text = city;
+    });
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('GPS Location mapped: $city ($region Region, Ghana)'),
+        backgroundColor: const Color(0xFF6A11CB),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _handlePlaceOrder() {
@@ -78,7 +198,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please correct the errors in the form before proceeding.'),
+          content: Text(
+            'Please correct the errors in the form before proceeding.',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -97,25 +219,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     setState(() => _isProcessing = true);
 
-    // Simulate order processing
-    Future.delayed(const Duration(milliseconds: 900), () {
+    // Simulate and persist order
+    Future.delayed(const Duration(milliseconds: 900), () async {
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
+      final regionName = _selectedRegion ?? 'Greater Accra';
+      final cityName = _cityController.text.trim();
+      final orderId =
+          'SHEI-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      final grandTotal = _cartService.grandTotal;
+
       final orderDetails = {
-        'orderId': 'HS-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+        'orderId': orderId,
         'customerName': _nameController.text.trim(),
         'customerEmail': _emailController.text.trim(),
         'customerPhone': _phoneController.text.trim(),
-        'deliveryAddress': '${_addressController.text.trim()}, ${_cityController.text.trim()}',
+        'deliveryRegion': '$regionName Region',
+        'city': cityName,
+        'deliveryAddress':
+            '${_addressController.text.trim()}, $cityName, $regionName Region, Ghana',
         'paymentMethod': _selectedPaymentMethod,
         'itemCount': _cartService.itemCount,
-        'totalAmount': _cartService.grandTotal,
+        'totalAmount': grandTotal,
         'orderDate': DateTime.now().toLocal().toString().split('.')[0],
+        'status': 'Processing',
       };
+
+      // Hybrid Storage Logic: Sync order text data to Firebase Firestore
+      await _firebaseService.saveOrder(orderDetails);
 
       // Clear the shopping cart
       _cartService.clearCart();
+
+      if (!mounted) return;
+
+      // Trigger order notification immediately
+      OrderNotificationService().notifyOrderPlaced(
+        context,
+        orderId: orderId,
+        deliveryRegion: '$regionName Region',
+        city: cityName,
+        totalAmount: grandTotal,
+        customerName: _nameController.text.trim(),
+        customerPhone: _phoneController.text.trim(),
+        itemsCount: _cartService.itemCount,
+      );
 
       // Coursework Concept: Page Navigation with Arguments to Order Confirmation
       Navigator.pushReplacementNamed(
@@ -152,8 +301,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ---------------- STEP 1: SHIPPING INFORMATION ----------------
-                _buildSectionHeader('1. Delivery Information', Icons.local_shipping_outlined),
+                // ---------------- STEP 1: DELIVERY INFORMATION ----------------
+                _buildSectionHeader(
+                  '1. Delivery Information',
+                  Icons.local_shipping_outlined,
+                ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -169,7 +321,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ],
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Recipient Contact Header
+                      const Text(
+                        'Recipient Contact Details',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
                       // Full Name
                       CustomTextField(
                         controller: _nameController,
@@ -211,23 +375,263 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       CustomTextField(
                         controller: _emailController,
                         label: 'Email Address *',
-                        hintText: 'e.g. hetty@university.edu',
+                        hintText: 'e.g. customer@sheistore.com',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Email address is required';
                           }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                              .hasMatch(value.trim())) {
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value.trim())) {
                             return 'Enter a valid email address';
                           }
                           return null;
                         },
                       ),
+
+                      const SizedBox(height: 16),
+                      const Divider(height: 1),
+                      const SizedBox(height: 16),
+
+                      // =======================================================
+                      // MANDATORY DELIVERY ADDRESS SEQUENCE:
+                      // 1. Delivery Region (Ghana)
+                      // 2. City / Town (with smart-fill / GPS location mapping)
+                      // 3. Street / Campus Address
+                      // =======================================================
+                      const Text(
+                        'Delivery Address Hierarchy (Ghana)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // 1. DELIVERY REGION (GHANA) - COMPACT INLINE DROPDOWN UI
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Delivery Region (Ghana) *',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2D3748),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: _selectedRegion,
+                            isExpanded: true,
+                            isDense: true,
+                            menuMaxHeight: 260,
+                            borderRadius: BorderRadius.circular(14),
+                            icon: const Icon(
+                              Icons.arrow_drop_down_circle_outlined,
+                              size: 20,
+                              color: Color(0xFF6A11CB),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Select one of Ghana\'s 16 regions',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 14,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.map_outlined,
+                                size: 20,
+                                color: Color(0xFF6A11CB),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFF6A11CB),
+                                  width: 1.8,
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 1.5,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            items: CheckoutScreen.ghanaRegions.map((region) {
+                              return DropdownMenuItem<String>(
+                                value: region,
+                                child: Text(
+                                  '$region Region',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedRegion = value;
+                                // If city is empty or default, suggest matching hub city
+                                if (value != null &&
+                                    CheckoutScreen.regionDefaultCityMap
+                                        .containsKey(value) &&
+                                    (_cityController.text.trim().isEmpty ||
+                                        _cityController.text.trim() ==
+                                            'Accra')) {
+                                  _cityController.text = CheckoutScreen
+                                      .regionDefaultCityMap[value]!;
+                                }
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please select a delivery region';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 14),
 
-                      // Delivery Address
+                      // 2. CITY / TOWN (WITH SMART-FILL / GPS LOCATION MAPPING)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'City / Town *',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF2D3748),
+                                ),
+                              ),
+                              // GPS Smart-Fill Action Button
+                              InkWell(
+                                onTap: () => _smartFillGPSLocation(
+                                  city: 'Sunyani',
+                                  region: 'Bono',
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.my_location,
+                                        size: 13,
+                                        color: Color(0xFF6A11CB),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'GPS: Sunyani (Bono)',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF6A11CB),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          CustomTextField(
+                            controller: _cityController,
+                            label: 'City / Town *',
+                            hintText: 'e.g. Sunyani, Kumasi, Accra, Takoradi',
+                            prefixIcon: Icons.location_city_outlined,
+                            suffixIcon: IconButton(
+                              icon: const Icon(
+                                Icons.gps_fixed,
+                                size: 18,
+                                color: Color(0xFF6A11CB),
+                              ),
+                              tooltip: 'Smart-Fill GPS Location for Sunyani',
+                              onPressed: () => _smartFillGPSLocation(
+                                city: 'Sunyani',
+                                region: 'Bono',
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'City or town is required';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Smart-Fill Quick Chips Row
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                const Text(
+                                  'Smart-Fill: ',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                _buildSmartCityChip('Sunyani', 'Bono'),
+                                const SizedBox(width: 6),
+                                _buildSmartCityChip('Kumasi', 'Ashanti'),
+                                const SizedBox(width: 6),
+                                _buildSmartCityChip('Accra', 'Greater Accra'),
+                                const SizedBox(width: 6),
+                                _buildSmartCityChip('Techiman', 'Bono East'),
+                                const SizedBox(width: 6),
+                                _buildSmartCityChip('Takoradi', 'Western'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // 3. STREET / CAMPUS ADDRESS
                       CustomTextField(
                         controller: _addressController,
                         label: 'Street / Campus Address *',
@@ -241,21 +645,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 14),
-
-                      // City
-                      CustomTextField(
-                        controller: _cityController,
-                        label: 'City / Region *',
-                        hintText: 'e.g. Accra',
-                        prefixIcon: Icons.location_city_outlined,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'City is required';
-                          }
-                          return null;
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -263,7 +652,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 24),
 
                 // ---------------- STEP 2: PAYMENT METHOD ----------------
-                _buildSectionHeader('2. Payment Method', Icons.payment_outlined),
+                _buildSectionHeader(
+                  '2. Payment Method',
+                  Icons.payment_outlined,
+                ),
                 const SizedBox(height: 12),
                 Container(
                   decoration: BoxDecoration(
@@ -289,7 +681,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           child: Row(
                             children: [
                               Icon(
@@ -347,7 +741,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 24),
 
                 // ---------------- STEP 3: ORDER SUMMARY ----------------
-                _buildSectionHeader('3. Order Summary', Icons.receipt_long_outlined),
+                _buildSectionHeader(
+                  '3. Order Summary',
+                  Icons.receipt_long_outlined,
+                ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -367,40 +764,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Items Count:',
-                              style: TextStyle(color: Colors.grey.shade600)),
-                          Text('${_cartService.itemCount} items',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Items Count:',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            '${_cartService.itemCount} items',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Subtotal:',
-                              style: TextStyle(color: Colors.grey.shade600)),
-                          Text('\$${_cartService.subtotal.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Subtotal:',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'GH₵ ${_cartService.subtotal.toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Delivery Charge:',
-                              style: TextStyle(color: Colors.grey.shade600)),
-                          Text('\$${_cartService.deliveryFee.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Delivery Charge:',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'GH₵ ${_cartService.deliveryFee.toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Tax (5%):',
-                              style: TextStyle(color: Colors.grey.shade600)),
-                          Text('\$${_cartService.tax.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            'Tax (5%):',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'GH₵ ${_cartService.tax.toStringAsFixed(2)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
                       const Divider(height: 24),
@@ -415,7 +828,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             ),
                           ),
                           Text(
-                            '\$${grandTotal.toStringAsFixed(2)}',
+                            'GH₵ ${grandTotal.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -441,6 +854,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 16),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmartCityChip(String city, String region) {
+    final isSelected =
+        _cityController.text.trim().toLowerCase() == city.toLowerCase();
+
+    return InkWell(
+      onTap: () => _smartFillGPSLocation(city: city, region: region),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF6A11CB)
+              : const Color(0xFF6A11CB).withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          '$city ($region)',
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : const Color(0xFF6A11CB),
           ),
         ),
       ),

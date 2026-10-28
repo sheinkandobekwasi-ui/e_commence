@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hettys_shop/data/cart_service.dart';
 import 'package:hettys_shop/models/cart_item.dart';
+import 'package:hettys_shop/widgets/app_image.dart';
 import 'package:hettys_shop/widgets/custom_button.dart';
 
 /// ============================================================================
@@ -69,7 +70,8 @@ class _CartScreenState extends State<CartScreen> {
                       builder: (ctx) => AlertDialog(
                         title: const Text('Clear Cart?'),
                         content: const Text(
-                            'Are you sure you want to remove all items from your cart?'),
+                          'Are you sure you want to remove all items from your cart?',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
@@ -89,8 +91,11 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.delete_outline,
-                      size: 18, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: Colors.red,
+                  ),
                   label: const Text(
                     'Clear',
                     style: TextStyle(color: Colors.red),
@@ -100,27 +105,31 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
           body: items.isEmpty
-              // ---------------- EMPTY CART MESSAGE ----------------
+              // ---------------- EMPTY CART MESSAGE (RESPONSIVE SCROLL) ----------------
               ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: 110,
+                          height: 110,
                           decoration: BoxDecoration(
                             color: theme.primaryColor.withOpacity(0.08),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.remove_shopping_cart_outlined,
-                            size: 60,
+                            size: 55,
                             color: theme.primaryColor,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         const Text(
                           'Your Cart is Empty',
                           style: TextStyle(
@@ -163,7 +172,9 @@ class _CartScreenState extends State<CartScreen> {
                     // Item Count Header Banner
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       color: theme.primaryColor.withOpacity(0.06),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -177,7 +188,7 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                           ),
                           Text(
-                            'Subtotal: \$${subtotal.toStringAsFixed(2)}',
+                            'Subtotal: GH₵ ${subtotal.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.bold,
@@ -210,7 +221,8 @@ class _CartScreenState extends State<CartScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(24)),
+                          top: Radius.circular(24),
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.08),
@@ -235,7 +247,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '\$${subtotal.toStringAsFixed(2)}',
+                                  'GH₵ ${subtotal.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -257,7 +269,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '\$${deliveryFee.toStringAsFixed(2)}',
+                                  'GH₵ ${deliveryFee.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -279,7 +291,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '\$${tax.toStringAsFixed(2)}',
+                                  'GH₵ ${tax.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -306,7 +318,7 @@ class _CartScreenState extends State<CartScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '\$${grandTotal.toStringAsFixed(2)}',
+                                  'GH₵ ${grandTotal.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
@@ -321,7 +333,7 @@ class _CartScreenState extends State<CartScreen> {
                             // Coursework Concept: Page Navigation to Checkout
                             CustomButton(
                               text:
-                                  'Proceed to Checkout (\$${grandTotal.toStringAsFixed(2)})',
+                                  'Proceed to Checkout • GH₵ ${grandTotal.toStringAsFixed(2)}',
                               icon: Icons.payment,
                               onPressed: () {
                                 Navigator.pushNamed(context, '/checkout');
@@ -364,12 +376,12 @@ class _CartScreenState extends State<CartScreen> {
             child: Container(
               width: 80,
               height: 80,
-              color: Colors.grey.shade100,
-              child: Image.network(
-                item.product.image,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.shopping_bag_outlined, size: 32),
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.all(4),
+              child: AppImage(
+                imagePath: item.product.image,
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
               ),
             ),
           ),
@@ -414,10 +426,7 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: 2),
                 Text(
                   item.product.formattedPrice,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 8),
 
@@ -444,8 +453,7 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                           ),
                           Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
                               '${item.quantity}',
                               style: const TextStyle(

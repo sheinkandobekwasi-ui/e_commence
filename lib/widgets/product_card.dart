@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:hettys_shop/data/cart_service.dart';
+import 'package:hettys_shop/data/wishlist_service.dart';
 import 'package:hettys_shop/models/product.dart';
+import 'package:hettys_shop/widgets/app_image.dart';
 
 /// ============================================================================
 /// ProductCard Widget
 /// Coursework Concept: StatelessWidget, Container, SizedBox, child & children
 /// ============================================================================
-/// A compact, modern e-commerce product card.
+/// A compact, modern e-commerce product card matching reference UI standards.
 /// Features:
-/// - 16:9 image aspect ratio with topCenter alignment to prevent cropping
-/// - Tight, naturally wrapped content directly beneath the image
-/// - No excessive blank vertical space below title and price
+/// - Uncropped image presentation with BoxFit.contain inside a structured frame
+///   so images display fully from top to bottom without top cropping.
+/// - Interactive Wishlist heart button to save/remove favorites.
+/// - Tight, dynamic vertical wrapping with zero excessive blank white space.
+/// - Neatly aligned ratings, titles, Ghana Cedis prices, and quick-add action.
 class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback? onTap;
 
-  const ProductCard({
-    super.key,
-    required this.product,
-    this.onTap,
-  });
+  const ProductCard({super.key, required this.product, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: onTap ??
+      onTap:
+          onTap ??
           () {
             // Coursework Concept: Page Navigation with Arguments
             Navigator.pushNamed(
@@ -39,95 +40,72 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200, width: 0.8),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // ---------------- 1. PRODUCT IMAGE (16:9 ASPECT RATIO) ----------------
-            AspectRatio(
-              aspectRatio: 16 / 9,
+            // ---------------- 1. PRODUCT IMAGE FRAME (FULL UN-CROPPED DISPLAY) ----------------
+            Expanded(
               child: Stack(
                 children: [
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(14),
+                        top: Radius.circular(13),
                       ),
                       child: Container(
-                        color: const Color(0xFFF1F5F9),
-                        child: Image.network(
-                          product.image,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.topCenter,
-                          // Graceful fallback if offline or image fails to load
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: theme.primaryColor.withOpacity(0.08),
-                              child: Center(
-                                child: Icon(
-                                  Icons.shopping_bag_outlined,
-                                  size: 32,
-                                  color: theme.primaryColor,
-                                ),
-                              ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            );
-                          },
+                        color: const Color(0xFFF8FAFC),
+                        padding: const EdgeInsets.all(6),
+                        child: AppImage(
+                          imagePath: product.image,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
                         ),
                       ),
                     ),
                   ),
 
-                  // Category pill tag
+                  // Category pill badge
                   Positioned(
-                    top: 6,
-                    left: 6,
+                    top: 7,
+                    left: 7,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 7,
+                        vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.65),
+                        color: Colors.black.withOpacity(0.68),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         product.category,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
 
-                  // Stock indicator badge
+                  // Low stock indicator badge (positioned below category)
                   if (product.stock <= 5)
                     Positioned(
-                      top: 6,
-                      right: 6,
+                      top: 31,
+                      left: 7,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 2,
+                          horizontal: 6,
+                          vertical: 2.5,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.orange.shade800,
@@ -137,55 +115,140 @@ class ProductCard extends StatelessWidget {
                           '${product.stock} left',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 8,
+                            fontSize: 8.5,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
+
+                  // Wishlist heart toggle button
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: ListenableBuilder(
+                      listenable: WishlistService(),
+                      builder: (context, _) {
+                        final isWishlisted =
+                            WishlistService().isWishlisted(product.id);
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              WishlistService().toggleWishlist(product);
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isWishlisted
+                                        ? 'Removed "${product.name}" from Wishlist'
+                                        : 'Added "${product.name}" to Wishlist ❤️',
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.92),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                isWishlisted
+                                    ? Icons.favorite
+                                    : Icons.favorite_border_rounded,
+                                size: 15,
+                                color: isWishlisted
+                                    ? Colors.redAccent
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            // ---------------- 2. COMPACT DETAILS DIRECTLY BENEATH IMAGE ----------------
+            // ---------------- 2. COMPACT DETAILS TIGHTLY WRAPPED ----------------
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Rating row
+                  // Rating & In-Stock row
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 12, color: Colors.amber),
+                      const Icon(
+                        Icons.star_rounded,
+                        size: 14,
+                        color: Colors.amber,
+                      ),
                       const SizedBox(width: 3),
                       Text(
                         product.rating.toString(),
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '•',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          product.stock > 0 ? 'In Stock' : 'Out of Stock',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: product.stock > 0
+                                ? Colors.green.shade700
+                                : Colors.red.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
 
-                  // Product Title
+                  // Product Title (compact, wraps tightly below the image)
                   Text(
                     product.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       height: 1.15,
                       color: Color(0xFF1E293B),
                     ),
                   ),
                   const SizedBox(height: 4),
 
-                  // Price and Quick Add to Cart Button
+                  // Ghana Cedis Price and Quick Add to Cart Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -193,43 +256,50 @@ class ProductCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           product.formattedPrice,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 14.5,
+                            fontSize: 14,
                             fontWeight: FontWeight.w900,
                             color: theme.primaryColor,
                           ),
                         ),
                       ),
                       // Quick Add button
-                      InkWell(
-                        onTap: () {
-                          CartService().addItem(product, quantity: 1);
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Added "${product.name}" to cart!'),
-                              duration: const Duration(seconds: 2),
-                              action: SnackBarAction(
-                                label: 'VIEW CART',
-                                textColor: Colors.amber,
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/cart');
-                                },
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            CartService().addItem(product, quantity: 1);
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Added "${product.name}" to cart!',
+                                ),
+                                duration: const Duration(seconds: 2),
+                                action: SnackBarAction(
+                                  label: 'VIEW CART',
+                                  textColor: Colors.amber,
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, '/cart');
+                                  },
+                                ),
                               ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: theme.primaryColor,
+                              shape: BoxShape.circle,
                             ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(14),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: theme.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add_shopping_cart,
-                            size: 13,
-                            color: Colors.white,
+                            child: const Icon(
+                              Icons.add_shopping_cart,
+                              size: 13,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),

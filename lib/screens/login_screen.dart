@@ -21,10 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   // Coursework Concept: GlobalKey for Form Validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _emailController =
-      TextEditingController(text: 'hetty.mensah@university.edu');
-  final TextEditingController _passwordController =
-      TextEditingController(text: 'password123');
+  final TextEditingController _emailController = TextEditingController(
+    text: 'customer@sheistore.com',
+  );
+  final TextEditingController _passwordController = TextEditingController(
+    text: 'password123',
+  );
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -111,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
 
                   const Text(
-                    "Hetty's Shop",
+                    "Shei Store",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
@@ -124,10 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'Welcome back! Log in to continue shopping.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
 
                   const SizedBox(height: 32),
@@ -136,15 +135,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   CustomTextField(
                     controller: _emailController,
                     label: 'Email Address',
-                    hintText: 'student@university.edu',
+                    hintText: 'customer@sheistore.com',
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value.trim())) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value.trim())) {
                         return 'Enter a valid email address';
                       }
                       return null;
@@ -202,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       CartService().login(
                         name: 'Guest Shopper',
-                        email: 'guest@hettysshop.com',
+                        email: 'guest@sheistore.com',
                         phone: '+233 50 123 4567',
                       );
                       Navigator.pushReplacementNamed(context, '/main');
@@ -218,7 +218,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+
+                  // Admin Portal Access Button (Authorized Only)
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/admin-login');
+                    },
+                    icon: const Icon(
+                      Icons.admin_panel_settings_outlined,
+                      size: 18,
+                      color: Color(0xFF6A11CB),
+                    ),
+                    label: const Text(
+                      'Admin Portal (Authorized Only)',
+                      style: TextStyle(
+                        color: Color(0xFF6A11CB),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // Coursework Concept: Page Navigation to Registration
                   Row(

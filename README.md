@@ -1,4 +1,4 @@
-# Hetty’s Shop - Mobile E-Commerce Application
+# Shei Store - Mobile & Web E-Commerce Application
 
 A fully functioning Flutter & Dart e-commerce mobile application built for a university coursework project. The app is ready to run directly in Android Studio or VS Code on Android Emulators, iOS Simulators, Physical Devices, or Web/Desktop.
 
@@ -8,16 +8,24 @@ A fully functioning Flutter & Dart e-commerce mobile application built for a uni
 
 ```
 lib/
-├── main.dart                          # Root MaterialApp, Routes, Theme configuration
+├── main.dart                          # Root MaterialApp, Named Routes, Material 3 Theme
 ├── models/
-│   ├── product.dart                   # Product model (id, name, description, price, image, category, stock)
+│   ├── product.dart                   # Product model (specifications, durability, functionality, GH₵ price)
 │   ├── cart_item.dart                 # CartItem model (product, quantity, line total)
 │   └── user_profile.dart              # User profile session model
 ├── data/
-│   ├── mock_data.dart                 # 18 sample products, 6 coursework categories, promo banners
-│   └── cart_service.dart              # Reactive Singleton Cart & Session state (ChangeNotifier)
+│   ├── mock_data.dart                 # 36 sample products, 6 categories, 19 local assets, promo banners
+│   ├── cart_service.dart              # Reactive Singleton Cart & Session state (ChangeNotifier)
+│   ├── product_service.dart           # Reactive Local Product Catalog & Persistence (SharedPreferences)
+│   └── wishlist_service.dart          # Reactive Local Wishlist state & Persistence (SharedPreferences)
+├── services/
+│   ├── admin_service.dart             # Admin session and authorization management
+│   ├── firebase_service.dart          # Hybrid Firestore text storage (orders & support tickets)
+│   └── order_notification_service.dart# Real-time customer order alerts & status notifications
 ├── widgets/
-│   ├── product_card.dart              # Product grid card with pricing, rating, stock & quick-add
+│   ├── account_helpdesk_card.dart     # 24/7 LIVE Support card with WhatsApp & Hotline url_launcher links
+│   ├── app_image.dart                 # Uncropped dynamic image loader (local assets, device files, base64)
+│   ├── product_card.dart              # Product grid card with wishlist heart, rating, GH₵ price & quick-add
 │   ├── category_chip.dart             # Selectable animated category filter chip
 │   ├── promo_banner.dart              # Gradient promotional banner with rounded containers
 │   ├── custom_button.dart             # Material 3 reusable styled button with loading state
@@ -25,14 +33,18 @@ lib/
 └── screens/
     ├── login_screen.dart              # Authentication with email/password form validation
     ├── registration_screen.dart       # Account creation with matching password validation
-    ├── main_screen.dart               # Hosts the Bottom NavigationBar (Home, Categories, Cart, Profile)
-    ├── home_screen.dart               # Search, promo banners, categories, featured grid
+    ├── main_screen.dart               # Jumia-style 5-tab NavigationBar (Home, Categories, Cart, Wishlist, Account)
+    ├── home_screen.dart               # Search, hotline bar, promo carousel, flash sale countdown, 2-column grid
     ├── categories_screen.dart         # 6 coursework categories with toggleable GridView / ListView
-    ├── product_details_screen.dart    # Receives Product via route arguments, stock counter & cart actions
-    ├── cart_screen.dart               # StatefulWidget shopping cart with real-time total calculations
-    ├── checkout_screen.dart           # Shipping & payment Form with strict validation
-    ├── order_confirmation_screen.dart # Invoice summary & order receipt
-    └── profile_screen.dart            # User profile details, order history & logout
+    ├── product_details_screen.dart    # Receives Product via route arguments, specs, durability & cart actions
+    ├── cart_screen.dart               # StatefulWidget shopping cart with real-time GH₵ calculations
+    ├── wishlist_screen.dart           # Liked items view with direct "Move to Cart" actions
+    ├── checkout_screen.dart           # Ghana 16 regions dropdown, Sunyani GPS mapping & Cedis payments
+    ├── order_confirmation_screen.dart # Invoice summary, delivery confirmation & order notification banner
+    ├── profile_screen.dart            # User profile details, Admin Portal shortcut, helpdesk card & logout
+    ├── admin_login_screen.dart        # Authorized administrator login portal
+    ├── admin_dashboard_screen.dart    # Product inventory management, real-time order alerts & order review
+    └── admin_product_form_screen.dart # Pre-populated product edit & new product creation form
 ```
 
 ---
@@ -104,6 +116,8 @@ flutter run
 ---
 
 ## 💡 Demo Credentials (Quick Grading)
-- **Pre-filled Email**: `hetty.mensah@university.edu`
-- **Pre-filled Password**: `password123`
+- **Customer Email**: `shei.customer@university.edu`
+- **Customer Password**: `password123`
+- **Admin Email**: `admin@sheistore.com`
+- **Admin Password**: `admin123`
 - *Alternatively, click the **"Continue as Guest"** button on the Login screen to immediately explore the shop.*

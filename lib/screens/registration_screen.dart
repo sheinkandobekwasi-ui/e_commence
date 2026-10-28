@@ -63,17 +63,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account successfully created! Welcome to Hetty\'s Shop.'),
+            content: Text(
+              'Account successfully created! Welcome to Shei Store.',
+            ),
             backgroundColor: Colors.green,
           ),
         );
 
         // Navigate to MainScreen
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/main',
-          (route) => false,
-        );
+        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
       });
     }
   }
@@ -99,7 +97,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Join Hetty’s Shop',
+                  'Join Shei Store',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -109,10 +107,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'Fill in your details below to create your personal shopping account.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
 
                 const SizedBox(height: 24),
@@ -147,8 +142,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email address';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                        .hasMatch(value.trim())) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value.trim())) {
                       return 'Enter a valid email address';
                     }
                     return null;

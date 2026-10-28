@@ -41,7 +41,7 @@ class CategoryChip extends StatelessWidget {
                     color: theme.primaryColor.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
-                  )
+                  ),
                 ]
               : [],
         ),

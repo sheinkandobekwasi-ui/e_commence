@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hettys_shop/models/product.dart';
+import 'package:hettys_shop/screens/admin_dashboard_screen.dart';
+import 'package:hettys_shop/screens/admin_login_screen.dart';
+import 'package:hettys_shop/screens/admin_product_form_screen.dart';
 import 'package:hettys_shop/screens/cart_screen.dart';
 import 'package:hettys_shop/screens/checkout_screen.dart';
 import 'package:hettys_shop/screens/login_screen.dart';
@@ -6,9 +10,11 @@ import 'package:hettys_shop/screens/main_screen.dart';
 import 'package:hettys_shop/screens/order_confirmation_screen.dart';
 import 'package:hettys_shop/screens/product_details_screen.dart';
 import 'package:hettys_shop/screens/registration_screen.dart';
+import 'package:hettys_shop/screens/wishlist_screen.dart';
+import 'package:hettys_shop/services/firebase_service.dart';
 
 /// ============================================================================
-/// Hetty's Shop - University Coursework Mobile Application
+/// Shei Store (formerly Hetty's Shop) - University Coursework Mobile & Web Application
 ///
 /// LECTURER'S REQUIRED CONCEPTS IMPLEMENTED ACROSS THE PROJECT:
 ///  [✓] MaterialApp - Defined here in main.dart
@@ -16,8 +22,8 @@ import 'package:hettys_shop/screens/registration_screen.dart';
 ///  [✓] AppBar - Custom headers with titles, actions & search
 ///  [✓] NavigationBar - Modern Material 3 bottom navigation in MainScreen
 ///  [✓] Container - Custom cards, badges, gradients, and layouts
-///  [✓] StatelessWidget - ProductCard, PromoBanner, CustomButton, CategoryChip
-///  [✓] StatefulWidget - MainScreen, HomeScreen, CartScreen, CheckoutScreen, LoginScreen
+///  [✓] StatelessWidget - ProductCard, PromoBanner, CustomButton, CategoryChip, AppImage
+///  [✓] StatefulWidget - MainScreen, HomeScreen, CartScreen, CheckoutScreen, LoginScreen, AdminDashboard
 ///  [✓] Widget - Explicit typing and composition throughout
 ///  [✓] child and children - Single-child and multi-child widget trees
 ///  [✓] body - Provided to every Scaffold
@@ -27,9 +33,13 @@ import 'package:hettys_shop/screens/registration_screen.dart';
 ///  [✓] Page navigation - Named routes & route arguments
 ///  [✓] Form validation - Login, Registration, Checkout with `GlobalKey<FormState>`
 ///  [✓] Arguments - Passing selected Product to ProductDetailsScreen & Order to Confirmation
+///  [✓] Firebase Hybrid Storage - Text to Firestore, Local assets to assets/images/
+///  [✓] Admin Management Panel - Product Creation, Local Asset Assignment, Orders review
 /// ============================================================================
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Firebase Free-Tier Hybrid Storage
+  await FirebaseService().initialize();
   runApp(const HettysShopApp());
 }
 
@@ -41,7 +51,7 @@ class HettysShopApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Coursework Concept: MaterialApp
     return MaterialApp(
-      title: "Hetty's Shop",
+      title: "Shei Store",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -72,9 +82,19 @@ class HettysShopApp extends StatelessWidget {
         '/main': (context) => const MainScreen(),
         '/product-details': (context) => const ProductDetailsScreen(),
         '/cart': (context) => const CartScreen(),
+        '/wishlist': (context) => const WishlistScreen(),
         '/checkout': (context) => const CheckoutScreen(),
         '/order-confirmation': (context) => const OrderConfirmationScreen(),
+        '/admin-login': (context) => const AdminLoginScreen(),
+        '/admin-dashboard': (context) => const AdminDashboardScreen(),
+        '/admin-product-form': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Product?;
+          return AdminProductFormScreen(productToEdit: args);
+        },
       },
     );
   }
 }
+
+/// Alias for Shei Store root widget
+typedef SheiStoreApp = HettysShopApp;

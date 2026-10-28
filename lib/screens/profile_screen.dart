@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hettys_shop/data/cart_service.dart';
+import 'package:hettys_shop/widgets/account_helpdesk_card.dart';
 
 /// ============================================================================
 /// ProfileScreen
@@ -48,7 +49,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: addressController,
-                decoration: const InputDecoration(labelText: 'Campus / Street Address'),
+                decoration: const InputDecoration(
+                  labelText: 'Campus / Street Address',
+                ),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -89,7 +92,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to log out of Hetty\'s Shop?'),
+        content: const Text(
+          'Are you sure you want to log out of Shei Store?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -176,7 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               border: Border.all(color: Colors.white, width: 3),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF6A11CB).withOpacity(0.3),
+                                  color: const Color(
+                                    0xFF6A11CB,
+                                  ).withOpacity(0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -184,7 +191,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: const CircleAvatar(
                               backgroundColor: Colors.transparent,
-                              child: Icon(Icons.person, size: 50, color: Colors.white),
+                              child: Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           Positioned(
@@ -197,7 +208,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   color: theme.primaryColor,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
@@ -241,11 +255,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _buildStatColumn('Orders', '4', theme.primaryColor),
                           Container(
-                              height: 24, width: 1, color: Colors.grey.shade300),
+                            height: 24,
+                            width: 1,
+                            color: Colors.grey.shade300,
+                          ),
                           _buildStatColumn('Wishlist', '12', Colors.redAccent),
                           Container(
-                              height: 24, width: 1, color: Colors.grey.shade300),
-                          _buildStatColumn('Coupons', '2', Colors.amber.shade800),
+                            height: 24,
+                            width: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                          _buildStatColumn(
+                            'Coupons',
+                            '2',
+                            Colors.amber.shade800,
+                          ),
                         ],
                       ),
                     ],
@@ -298,72 +322,121 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
 
                 // ---------------- SETTINGS & OPTIONS ----------------
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
+                Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  elevation: 1,
+                  shadowColor: Colors.black.withOpacity(0.04),
+                  clipBehavior: Clip.antiAlias,
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.receipt_long_outlined,
-                            color: Color(0xFF6A11CB)),
-                        title: const Text('Order History',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        leading: const Icon(
+                          Icons.receipt_long_outlined,
+                          color: Color(0xFF6A11CB),
+                        ),
+                        title: const Text(
+                          'Order History',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Displaying your most recent coursework orders.'),
+                              content: Text(
+                                'Displaying your most recent coursework orders.',
+                              ),
                             ),
                           );
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.notifications_outlined,
-                            color: Color(0xFF6A11CB)),
-                        title: const Text('Notifications',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        leading: const Icon(
+                          Icons.notifications_outlined,
+                          color: Color(0xFF6A11CB),
+                        ),
+                        title: const Text(
+                          'Notifications',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Notifications are currently active.'),
+                              content: Text(
+                                'Notifications are currently active.',
+                              ),
                             ),
                           );
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.help_outline,
-                            color: Color(0xFF6A11CB)),
-                        title: const Text('Help & Support',
-                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                        leading: const Icon(
+                          Icons.help_outline,
+                          color: Color(0xFF6A11CB),
+                        ),
+                        title: const Text(
+                          'Help & Support',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                         onTap: () {
                           showAboutDialog(
                             context: context,
-                            applicationName: "Hetty's Shop",
+                            applicationName: "Shei Store",
                             applicationVersion: "1.0.0",
-                            applicationLegalese: "University Mobile Application Coursework Project",
+                            applicationLegalese:
+                                "University Mobile Application Coursework Project",
                             children: const [
                               SizedBox(height: 10),
-                              Text('Built with Flutter & Dart for Android Studio coursework demonstration.'),
+                              Text(
+                                'Built with Flutter & Dart for Android Studio coursework demonstration.',
+                              ),
                             ],
                           );
+                        },
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.admin_panel_settings_outlined,
+                          color: Color(0xFF6A11CB),
+                        ),
+                        title: const Text(
+                          'Admin Portal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Authorized Admin portal & product management',
+                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/admin-login');
                         },
                       ),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 20),
+
+                // ---------------- ACCOUNT HELPDESK & SUPPORT CARD ----------------
+                const AccountHelpdeskCard(),
 
                 const SizedBox(height: 24),
 
@@ -383,7 +456,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.redAccent, width: 1.5),
+                      side: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -394,11 +470,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 16),
 
                 Text(
-                  'Hetty’s Shop • Version 1.0.0 (Coursework Build)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade400,
-                  ),
+                  'Shei Store • Version 1.0.0 (Coursework Build)',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
                 ),
               ],
             ),
@@ -422,10 +495,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -443,10 +513,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
               ),
               const SizedBox(height: 2),
               Text(

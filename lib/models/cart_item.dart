@@ -10,14 +10,13 @@ class CartItem {
   final Product product;
   int quantity;
 
-  CartItem({
-    required this.product,
-    this.quantity = 1,
-  });
+  CartItem({required this.product, this.quantity = 1});
 
   /// Calculates the total cost for this specific line item
   double get totalPrice => product.price * quantity;
 
-  /// Helper to format the line item total price nicely
-  String get formattedTotalPrice => '\$${totalPrice.toStringAsFixed(2)}';
+  /// Helper to format the line item total price in Ghana Cedis (GH₵)
+  String get formattedTotalPrice => totalPrice == totalPrice.roundToDouble()
+      ? 'GH₵ ${totalPrice.toInt()}'
+      : 'GH₵ ${totalPrice.toStringAsFixed(2)}';
 }
